@@ -1,0 +1,50 @@
+[
+  {
+    "name": "Mississauga",
+    "slug": "mississauga",
+    "zone": "Peel Region",
+    "badge": "Express Regional Delivery",
+    "description": "Serving Mississauga's vibrant multicultural community, from Square One and Port Credit to Streetsville, with curated jewellery for family celebrations, weddings, and modern everyday style.",
+    "local_context": "Mississauga is home to some of Ontario's premier celebration venues and cultural festivities. Whimsy Collection provides rapid styling consultations and doorstep delivery for brides, wedding guests, and fashion trendsetters across Mississauga."
+  },
+  {
+    "name": "Brampton",
+    "slug": "brampton",
+    "zone": "Peel Region",
+    "badge": "Heritage & Wedding Hub",
+    "description": "Bringing authentic heritage Kundan, bridal suites, and celebration jhumkas to the heart of Brampton's wedding and festival community.",
+    "local_context": "Brampton represents the beating heart of traditional South Asian celebrations in the GTA. Whimsy Collection specializes in festive suites, bridal suites, and sangeet jewellery tailored for Brampton's wedding season."
+  },
+  {
+    "name": "Toronto",
+    "slug": "toronto",
+    "zone": "Greater Toronto Area",
+    "badge": "Cosmopolitan Fashion Corridor",
+    "description": "Catering to Toronto's cosmopolitan trendsetters with minimalist layering chains, chic ear stacks, and fusion statement pieces across Downtown, Yorkville, and North York.",
+    "local_context": "In Canada's fashion capital, Whimsy Collection bridges traditional artisan techniques with sleek, modern minimalism suited for gallery receptions, corporate leadership, and gala evenings."
+  },
+  {
+    "name": "Kitchener",
+    "slug": "kitchener",
+    "zone": "Waterloo Region",
+    "badge": "Direct Concierge Delivery",
+    "description": "Delivering curated jewellery collections to Kitchener residents seeking distinctive pieces for milestone moments, cultural festivities, and everyday chic.",
+    "local_context": "Kitchener's growing multicultural community enjoys personalized access to Whimsy Collection's boutique curation without traveling into the GTA."
+  },
+  {
+    "name": "Cambridge",
+    "slug": "cambridge",
+    "zone": "Waterloo Region",
+    "badge": "Local Hand Delivery",
+    "description": "Serving Cambridge with timeless jewellery suites, bespoke gifting collections, and curated accessories for weddings, anniversaries, and family milestones.",
+    "local_context": "From historic Galt to modern Hespeler, Cambridge clients enjoy personal doorstep delivery and attentive styling assistance for every special occasion."
+  },
+  {
+    "name": "Guelph",
+    "slug": "guelph",
+    "zone": "Wellington County",
+    "badge": "Regional Courier Service",
+    "description": "Providing Guelph's discerning jewellery lovers with contemporary minimalist designs, statement festive pieces, and thoughtful boutique gifts.",
+    "local_context": "The Royal City embraces authentic craftsmanship and mindful design. Whimsy Collection delivers boutique elegance with transparent guidance and direct concierge communication."
+  }
+]

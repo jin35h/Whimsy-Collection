@@ -1,0 +1,43 @@
+/* ==========================================================================
+   WHIMSY COLLECTION - VFX CANVAS & LUXURY GLOW STYLING
+   ========================================================================== */
+
+#sparkleCanvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.hero-vfx-container {
+  position: relative;
+}
+
+.gold-glow {
+  filter: drop-shadow(0 0 12px rgba(198, 163, 107, 0.45));
+}
+
+.starlight-sparkle {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background-color: #C6A36B;
+  border-radius: 50%;
+  box-shadow: 0 0 10px #E6C898, 0 0 20px #C6A36B;
+  pointer-events: none;
+  animation: sparkleTwinkle 3s infinite ease-in-out;
+}
+
+@keyframes sparkleTwinkle {
+  0%, 100% {
+    opacity: 0.2;
+    transform: scale(0.6) rotate(0deg);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.4) rotate(45deg);
+  }
+}

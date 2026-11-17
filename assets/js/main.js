@@ -1,342 +1,215 @@
 /**
- * WHIMSY COLLECTION - MAIN JAVASCRIPT
- * Catalog renderer, filters, mobile navigation, FAQ accordion
- * STRICT RULE: NO PRICES SHOWN - WHATSAPP INQUIRY ONLY
+ * Shared navigation, disclosure and enquiry behaviour for the static site.
  */
-
-document.addEventListener('DOMContentLoaded', () => {
-  initMobileNav();
-  initStickyHeader();
+$(function () {
+  initHeader();
+  initMobileDrawer();
   initFaqAccordion();
-  initHomeFeaturedProducts();
-  initCatalogPage();
-  initProductDetailPage();
+  initEnquiryModal();
+  initEnquiryForms();
+  initCurrentPageLinks();
 });
 
-// Mobile Navigation Drawer
-function initMobileNav() {
-  const toggleBtn = document.querySelector('.mobile-toggle');
-  const drawer = document.querySelector('.mobile-drawer');
-  const overlay = document.querySelector('.drawer-overlay');
-  const closeBtn = document.querySelector('.drawer-close');
-
-  if (!toggleBtn || !drawer) return;
-
-  function openDrawer() {
-    drawer.classList.add('open');
-    if (overlay) overlay.classList.add('active');
-    document.body.style.overflow = 'hidden';
-  }
-
-  function closeDrawer() {
-    drawer.classList.remove('open');
-    if (overlay) overlay.classList.remove('active');
-    document.body.style.overflow = '';
-  }
-
-  toggleBtn.addEventListener('click', openDrawer);
-  if (closeBtn) closeBtn.addEventListener('click', closeDrawer);
-  if (overlay) overlay.addEventListener('click', closeDrawer);
+function initCurrentPageLinks() {
+  const currentPage = window.location.pathname.split('/').pop() || 'index.html';
+  $('.site-header a.nav-link').removeClass('active').removeAttr('aria-current');
+  $('.site-header a.nav-link, #mobileDrawer a').each(function () {
+    const href = (this.getAttribute('href') || '').split(/[?#]/)[0];
+    if (href === currentPage) {
+      this.setAttribute('aria-current', 'page');
+      if (this.classList.contains('nav-link')) this.classList.add('active');
+    }
+  });
 }
 
-// Sticky Header
-function initStickyHeader() {
+function initHeader() {
   const header = document.querySelector('.site-header');
   if (!header) return;
 
-  window.addEventListener('scroll', () => {
-    if (window.scrollY > 40) {
-      header.classList.add('scrolled');
-    } else {
-      header.classList.remove('scrolled');
-    }
+  const updateHeader = () => header.classList.toggle('scrolled', window.scrollY > 30);
+  updateHeader();
+  window.addEventListener('scroll', updateHeader, { passive: true });
+}
+
+function initMobileDrawer() {
+  const drawer = document.getElementById('mobileDrawer');
+  const openButton = document.getElementById('openDrawerBtn');
+  const closeButton = document.getElementById('closeDrawerBtn');
+  const backdrop = document.getElementById('drawerBackdrop');
+  if (!drawer || !openButton) return;
+
+  let previousFocus = null;
+  const focusable = () => Array.from(drawer.querySelectorAll(
+    'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+  )).filter(el => el.getClientRects().length);
+
+  function openDrawer() {
+    previousFocus = document.activeElement;
+    drawer.classList.add('active');
+    backdrop?.classList.add('active');
+    drawer.setAttribute('aria-hidden', 'false');
+    openButton.setAttribute('aria-expanded', 'true');
+    document.body.style.overflow = 'hidden';
+    (focusable()[0] || drawer).focus({ preventScroll: true });
+  }
+
+  function closeDrawer() {
+    drawer.classList.remove('active');
+    backdrop?.classList.remove('active');
+    drawer.setAttribute('aria-hidden', 'true');
+    openButton.setAttribute('aria-expanded', 'false');
+    document.body.style.overflow = '';
+    (previousFocus || openButton).focus({ preventScroll: true });
+  }
+
+  openButton.setAttribute('aria-controls', 'mobileDrawer');
+  openButton.setAttribute('aria-expanded', 'false');
+  drawer.setAttribute('aria-hidden', 'true');
+  if (!drawer.hasAttribute('tabindex')) drawer.setAttribute('tabindex', '-1');
+  if (!drawer.hasAttribute('role')) {
+    drawer.setAttribute('role', 'dialog');
+    drawer.setAttribute('aria-modal', 'true');
+    drawer.setAttribute('aria-label', 'Site navigation');
+  }
+
+  openButton.addEventListener('click', openDrawer);
+  closeButton?.addEventListener('click', closeDrawer);
+  backdrop?.addEventListener('click', closeDrawer);
+  drawer.addEventListener('click', event => {
+    if (event.target === drawer) closeDrawer();
   });
-}
 
-// FAQ Accordion
-function initFaqAccordion() {
-  const items = document.querySelectorAll('.faq-item');
-  items.forEach(item => {
-    const question = item.querySelector('.faq-question');
-    if (!question) return;
-
-    question.addEventListener('click', () => {
-      const isActive = item.classList.contains('active');
-      items.forEach(other => other.classList.remove('active'));
-      if (!isActive) {
-        item.classList.add('active');
-      }
-    });
-  });
-}
-
-// Generate single product card HTML (STRICTLY NO PRICE)
-function createProductCardHtml(p) {
-  const badgesHtml = (p.tags || []).map(t => {
-    const cls = t.includes('Stainless') ? 'badge-steel' : (t.includes('Bestseller') ? 'badge-gold' : '');
-    return `<span class="badge-tag ${cls}">${t}</span>`;
-  }).join('');
-
-  const inqUrl = WHIMSY_CONFIG.getInquiryUrl(p.name, p.sku);
-  const orderUrl = WHIMSY_CONFIG.getOrderUrl(p.name, p.sku, '');
-  const imgSrc = p.image || 'assets/images/hero-flatlay.png';
-
-  return `
-    <div class="product-card" data-category="${p.category}" data-material="${p.material}">
-      <div class="product-img-wrap">
-        <div class="product-badges">
-          ${badgesHtml}
-        </div>
-        <img src="${imgSrc}" alt="${p.name} - Whimsy Collection Canada" class="product-img" loading="lazy" onerror="this.onerror=null;this.src='assets/images/hero-flatlay.png';" />
-      </div>
-      <div class="product-body">
-        <div class="product-meta-row">
-          <span class="product-category-text">${p.category}</span>
-          <span class="product-sku-pill">${p.sku}</span>
-        </div>
-        <h3 class="product-name">
-          <a href="product-details.html?sku=${p.sku}">${p.name}</a>
-        </h3>
-        <div class="product-material-info">
-          <i class="fa-solid fa-gem text-gold"></i>
-          <span>${p.material}</span>
-        </div>
-        <div class="inquiry-status-box">
-          <div class="inquiry-status-text">
-            <i class="fa-brands fa-whatsapp text-whatsapp"></i>
-            <span>Boutique Inquiry</span>
-          </div>
-          <span class="inquiry-status-badge">Available to Deliver</span>
-        </div>
-        <div class="product-actions">
-          <button type="button" class="btn-inquire-wa" onclick="openWhatsAppInquiry('${p.name.replace(/'/g, "\\'")}', '${p.sku}')">
-            <i class="fa-brands fa-whatsapp"></i> Inquire
-          </button>
-          <a href="${orderUrl}" target="_blank" rel="noopener" class="btn-order-wa">
-            <i class="fa-solid fa-bag-shopping"></i> Order
-          </a>
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-// Homepage Featured Bestsellers
-function initHomeFeaturedProducts() {
-  const container = document.getElementById('homeFeaturedGrid');
-  if (!container || typeof WHIMSY_PRODUCTS === 'undefined') return;
-
-  const featured = WHIMSY_PRODUCTS.slice(0, 8);
-  container.innerHTML = featured.map(createProductCardHtml).join('');
-}
-
-// Catalog Page Functionality
-function initCatalogPage() {
-  const grid = document.getElementById('catalogProductsGrid');
-  if (!grid || typeof WHIMSY_PRODUCTS === 'undefined') return;
-
-  const countEl = document.getElementById('catalogResultCount');
-  const searchInput = document.getElementById('catalogSearchInput');
-  const categoryPills = document.querySelectorAll('.catalog-filter-pill');
-  const materialSelect = document.getElementById('catalogMaterialSelect');
-  const sortSelect = document.getElementById('catalogSortSelect');
-
-  let currentCategory = 'all';
-  let currentMaterial = 'all';
-  let searchQuery = '';
-
-  function render() {
-    let filtered = WHIMSY_PRODUCTS.filter(p => {
-      const matchCat = (currentCategory === 'all' || p.category.toLowerCase() === currentCategory.toLowerCase());
-      const matchMat = (currentMaterial === 'all' || p.material.toLowerCase().includes(currentMaterial.toLowerCase()));
-      const matchSearch = !searchQuery || 
-        p.name.toLowerCase().includes(searchQuery) || 
-        p.sku.toLowerCase().includes(searchQuery) ||
-        p.category.toLowerCase().includes(searchQuery);
-      return matchCat && matchMat && matchSearch;
-    });
-
-    if (countEl) {
-      countEl.textContent = `Showing ${filtered.length} of ${WHIMSY_PRODUCTS.length} curated pieces`;
-    }
-
-    if (filtered.length === 0) {
-      grid.innerHTML = `
-        <div style="grid-column: 1/-1; text-align: center; padding: 60px 20px;">
-          <i class="fa-solid fa-magnifying-glass" style="font-size: 3rem; color: var(--color-rose); margin-bottom: 16px;"></i>
-          <h3 style="font-family: var(--font-serif); margin-bottom: 8px;">No jewelry pieces matched your search</h3>
-          <p style="color: var(--color-muted); max-width: 480px; margin: 0 auto 20px;">We might have what you're looking for! Ask our personal boutique stylist on WhatsApp directly.</p>
-          <a href="https://wa.me/17059702169?text=${encodeURIComponent('Hi Whimsy Collection, I am searching for a specific jewelry piece not listed in the online catalog.')}" target="_blank" class="btn btn-whatsapp">
-            <i class="fa-brands fa-whatsapp"></i> Inquire Custom Style
-          </a>
-        </div>
-      `;
+  document.addEventListener('keydown', event => {
+    if (!drawer.classList.contains('active')) return;
+    if (event.key === 'Escape') {
+      closeDrawer();
       return;
     }
-
-    grid.innerHTML = filtered.map(createProductCardHtml).join('');
-  }
-
-  // Category Pills
-  categoryPills.forEach(pill => {
-    pill.addEventListener('click', () => {
-      categoryPills.forEach(p => p.classList.remove('active'));
-      pill.classList.add('active');
-      currentCategory = pill.getAttribute('data-category');
-      render();
-    });
+    if (event.key !== 'Tab') return;
+    const items = focusable();
+    if (!items.length) return;
+    const first = items[0];
+    const last = items[items.length - 1];
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
   });
-
-  // Search Input
-  if (searchInput) {
-    searchInput.addEventListener('input', (e) => {
-      searchQuery = e.target.value.toLowerCase().trim();
-      render();
-    });
-  }
-
-  // Material Filter
-  if (materialSelect) {
-    materialSelect.addEventListener('change', (e) => {
-      currentMaterial = e.target.value;
-      render();
-    });
-  }
-
-  // Check URL params for category
-  const urlParams = new URLSearchParams(window.location.search);
-  const catParam = urlParams.get('category');
-  if (catParam) {
-    currentCategory = catParam;
-    categoryPills.forEach(pill => {
-      if (pill.getAttribute('data-category').toLowerCase() === catParam.toLowerCase()) {
-        categoryPills.forEach(p => p.classList.remove('active'));
-        pill.classList.add('active');
-      }
-    });
-  }
-
-  render();
 }
 
-// Product Detail Page
-function initProductDetailPage() {
-  const detailContainer = document.getElementById('productDetailWrapper');
-  if (!detailContainer || typeof WHIMSY_PRODUCTS === 'undefined') return;
+function initFaqAccordion() {
+  $(document).on('click', '.faq-question', function () {
+    const $button = $(this);
+    const $item = $button.closest('.faq-item');
+    const isOpen = $item.hasClass('active') || $item.hasClass('open');
 
-  const urlParams = new URLSearchParams(window.location.search);
-  let sku = urlParams.get('sku');
-  
-  let product = WHIMSY_PRODUCTS.find(p => p.sku === sku);
-  if (!product) {
-    product = WHIMSY_PRODUCTS[0]; // Fallback to first piece
+    $('.faq-item').not($item).removeClass('active open').each(function () {
+      $(this).find('.faq-question').attr('aria-expanded', 'false');
+      $(this).find('.faq-answer').attr('hidden', true);
+    });
+
+    $item.toggleClass('active open', !isOpen);
+    $button.attr('aria-expanded', String(!isOpen));
+    $item.find('.faq-answer').attr('hidden', isOpen);
+  });
+
+  $('.faq-question').each(function () {
+    const $question = $(this);
+    const $answer = $question.closest('.faq-item').find('.faq-answer').first();
+    if (!$question.is('button')) return;
+    if (!$answer.attr('id')) $answer.attr('id', `faq-answer-${Math.random().toString(36).slice(2, 9)}`);
+    $question.attr({
+      'aria-controls': $answer.attr('id'),
+      'aria-expanded': String($question.closest('.faq-item').is('.active, .open'))
+    });
+    if (!$question.closest('.faq-item').is('.active, .open')) $answer.attr('hidden', true);
+  });
+}
+
+function initEnquiryModal() {
+  const modal = document.getElementById('enquiryModal');
+  if (!modal) return;
+  const closeButton = modal.querySelector('.modal-close');
+  let previousFocus = null;
+
+  function closeModal() {
+    modal.classList.remove('active');
+    modal.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+    (previousFocus || document.querySelector('.open-enquiry-btn, .open-enquiry-modal'))?.focus({ preventScroll: true });
   }
 
-  // Set page meta title
-  document.title = `${product.name} | Whimsy Collection Ontario`;
+  $(document).on('click', '.open-enquiry-btn, .open-enquiry-modal', function (event) {
+    event.preventDefault();
+    previousFocus = this;
+    const productName = $(this).data('product-name') || $('#productTitle').text() || 'Signature Jewellery Piece';
+    const productSku = $(this).data('product-sku') || ($('#productSku').text() || '').replace('SKU: ', '');
+    $('#modalProductName').text(productName);
+    $('#modalProductSku').text(productSku ? `SKU: ${productSku}` : '');
+    $('#enquiryModalForm [name="product_name"]').val(productName);
+    $('#enquiryModalForm [name="product_sku"]').val(productSku);
 
-  const inqUrl = WHIMSY_CONFIG.getInquiryUrl(product.name, product.sku);
-  const orderUrl = WHIMSY_CONFIG.getOrderUrl(product.name, product.sku, '');
+    const waText = encodeURIComponent(`Hello Whimsy Collection, I would like to enquire about ${productName}${productSku ? ` (SKU: ${productSku})` : ''}. Please let me know about availability and delivery options.`);
+    $('#modalWhatsAppBtn').attr('href', `https://wa.me/17059702169?text=${waText}`);
+    modal.classList.add('active');
+    modal.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+    (modal.querySelector('input:not([type="hidden"]), textarea, button, a[href]'))?.focus({ preventScroll: true });
+  });
 
-  detailContainer.innerHTML = `
-    <div class="product-detail-grid">
-      <div class="detail-gallery-wrap">
-        <div class="detail-main-img-box">
-          <img src="${product.image}" alt="${product.name}" class="detail-main-img" id="detailZoomImg" />
-          <div class="detail-badge-pill">
-            <i class="fa-solid fa-leaf text-gold"></i> Whimsy Authentic
-          </div>
-        </div>
-        <div class="detail-packaging-callout">
-          <i class="fa-solid fa-gift text-primary"></i>
-          <div>
-            <strong>Includes Signature Velvet Pouch</strong>
-            <p>Every order is hand-packaged inside our rose velvet travel pouch with a golden snap button.</p>
-          </div>
-        </div>
-      </div>
+  closeButton?.addEventListener('click', closeModal);
+  modal.addEventListener('click', event => {
+    if (event.target === modal) closeModal();
+  });
+  modal.setAttribute('aria-hidden', 'true');
+  modal.setAttribute('role', 'dialog');
+  modal.setAttribute('aria-modal', 'true');
+  modal.setAttribute('aria-labelledby', 'modalProductName');
 
-      <div class="detail-content-wrap">
-        <div class="detail-breadcrumbs">
-          <a href="index.html">Home</a> &rsaquo;
-          <a href="catalog.html">Catalog</a> &rsaquo;
-          <a href="catalog.html?category=${product.category}">${product.category}</a> &rsaquo;
-          <span>${product.sku}</span>
-        </div>
+  document.addEventListener('keydown', event => {
+    if (!modal.classList.contains('active')) return;
+    if (event.key === 'Escape') closeModal();
+    if (event.key === 'Tab') {
+      const items = Array.from(modal.querySelectorAll('a[href], button:not([disabled]), input:not([disabled]), textarea:not([disabled])'))
+        .filter(el => el.getClientRects().length);
+      if (!items.length) return;
+      if (event.shiftKey && document.activeElement === items[0]) {
+        event.preventDefault();
+        items[items.length - 1].focus();
+      } else if (!event.shiftKey && document.activeElement === items[items.length - 1]) {
+        event.preventDefault();
+        items[0].focus();
+      }
+    }
+  });
+}
 
-        <h1 class="detail-title">${product.name}</h1>
+function initEnquiryForms() {
+  $('#contactForm, #enquiryModalForm').on('submit', function (event) {
+    event.preventDefault();
+    if (!this.reportValidity()) return;
 
-        <div class="detail-meta-bar">
-          <span class="detail-sku">SKU: <strong>${product.sku}</strong></span>
-          <span class="detail-material"><i class="fa-solid fa-gem text-gold"></i> ${product.material}</span>
-          <span class="detail-status-pill"><i class="fa-solid fa-circle-check"></i> In Stock for Ontario Delivery</span>
-        </div>
+    const values = new FormData(this);
+    const lines = [
+      'Hello Whimsy Collection, I would like to make an enquiry.',
+      values.get('product_name') ? `Piece: ${values.get('product_name')}` : '',
+      values.get('product_sku') ? `SKU: ${values.get('product_sku')}` : '',
+      values.get('name') ? `Name: ${values.get('name')}` : '',
+      values.get('email') ? `Email: ${values.get('email')}` : '',
+      values.get('phone') ? `Phone: ${values.get('phone')}` : '',
+      values.get('city') ? `City: ${values.get('city')}` : '',
+      values.get('occasion') ? `Occasion: ${values.get('occasion')}` : '',
+      values.get('message') ? `Message: ${values.get('message')}` : ''
+    ].filter(Boolean);
 
-        <!-- NO PRICE - Direct WhatsApp Ordering Prompt -->
-        <div class="detail-inquiry-card">
-          <div class="inquiry-card-header">
-            <div>
-              <span class="inquiry-tag">Boutique Exclusive</span>
-              <h3 class="inquiry-price-placeholder">Pricing & Availability via WhatsApp</h3>
-            </div>
-            <span class="live-dot"><span class="dot"></span> Online Now</span>
-          </div>
-          <p class="inquiry-card-text">
-            To provide the most personalized experience with zero retail markups, our boutique coordinates directly through WhatsApp. Message us to get today's price, live close-up video/photos, and coordinate doorstep delivery to your city.
-          </p>
-          <div class="detail-cta-row">
-            <a href="${inqUrl}" target="_blank" rel="noopener" class="btn btn-whatsapp btn-lg">
-              <i class="fa-brands fa-whatsapp"></i> Inquire Price on WhatsApp
-            </a>
-            <a href="${orderUrl}" target="_blank" rel="noopener" class="btn btn-primary btn-lg">
-              <i class="fa-solid fa-bag-shopping"></i> Order on WhatsApp
-            </a>
-          </div>
-          <div class="delivery-guarantee-note">
-            <i class="fa-solid fa-truck-fast text-gold"></i>
-            <span>Doorstep & Contactless Delivery in <strong>Mississauga, Brampton, Toronto, Kitchener, Cambridge, Guelph</strong>.</span>
-          </div>
-        </div>
-
-        <div class="detail-tabs-wrap">
-          <div class="detail-desc-block">
-            <h3>Craftsmanship & Details</h3>
-            <p>${product.description}</p>
-          </div>
-
-          <div class="detail-specs-table">
-            <div class="spec-row">
-              <span class="spec-label">Category</span>
-              <span class="spec-value">${product.category}</span>
-            </div>
-            <div class="spec-row">
-              <span class="spec-label">Material Composition</span>
-              <span class="spec-value">${product.material}</span>
-            </div>
-            <div class="spec-row">
-              <span class="spec-label">Color Finish</span>
-              <span class="spec-value">${product.color}</span>
-            </div>
-            <div class="spec-row">
-              <span class="spec-label">Delivery Zones</span>
-              <span class="spec-value">Mississauga, Brampton, Toronto, Kitchener, Cambridge, Guelph (Ontario)</span>
-            </div>
-            <div class="spec-row">
-              <span class="spec-label">Payment Accepted</span>
-              <span class="spec-value">Interac e-Transfer, Cash on Local Delivery/Pickup</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  `;
-
-  // Render related products
-  const relatedGrid = document.getElementById('relatedProductsGrid');
-  if (relatedGrid) {
-    const related = WHIMSY_PRODUCTS
-      .filter(p => p.category === product.category && p.sku !== product.sku)
-      .slice(0, 4);
-    relatedGrid.innerHTML = related.map(createProductCardHtml).join('');
-  }
+    const message = encodeURIComponent(lines.join('\n'));
+    const url = `https://wa.me/17059702169?text=${message}`;
+    window.open(url, '_blank', 'noopener,noreferrer');
+    const $status = $(this).find('[data-form-status]');
+    $status.text('WhatsApp should open with your message. Review it and press Send; if it does not open, use the WhatsApp or call link on this page.');
+    if ($status.length) $status.attr('role', 'status');
+  });
 }

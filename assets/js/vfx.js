@@ -1,25 +1,30 @@
 /**
  * WHIMSY COLLECTION - VFX & SPARKLE ENGINE
- * Customer-Focusing Micro-interactions & Particle Generator
+ * Luxury Particle Generator & Interactive Microinteractions
  */
 
+document.documentElement.classList.add('js');
+
 document.addEventListener('DOMContentLoaded', () => {
-  initSparkleCanvas();
+  if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches && !navigator.connection?.saveData) {
+    initSparkleCanvas();
+  }
   initScrollReveal();
-  initWhatsAppInquiryModal();
 });
 
 // Canvas Sparkle Generator
 function initSparkleCanvas() {
-  const canvas = document.getElementById('sparkleCanvas');
+  const canvas = document.getElementById('sparkleCanvas') || document.getElementById('vfxCanvas');
   if (!canvas) return;
 
   const ctx = canvas.getContext('2d');
+  if (!ctx) return;
   let width, height;
   let particles = [];
-  const particleCount = 28;
+  const particleCount = window.matchMedia('(max-width: 760px)').matches ? 12 : 22;
 
   function resize() {
+    if (!canvas.parentElement) return;
     width = canvas.width = canvas.parentElement.offsetWidth;
     height = canvas.height = canvas.parentElement.offsetHeight;
   }
@@ -40,8 +45,7 @@ function initSparkleCanvas() {
       this.speedY = -Math.random() * 0.4 - 0.1;
       this.alpha = Math.random() * 0.7 + 0.1;
       this.fade = Math.random() * 0.01 + 0.005;
-      this.color = Math.random() > 0.4 ? 'rgba(212, 168, 97, ' : 'rgba(231, 156, 165, '; // Gold or Rose
-      this.spikes = Math.random() > 0.5 ? 4 : 5;
+      this.color = Math.random() > 0.4 ? 'rgba(198, 163, 107, ' : 'rgba(231, 156, 165, '; // Champagne Gold or Rose
     }
 
     update() {
@@ -49,7 +53,7 @@ function initSparkleCanvas() {
       this.y += this.speedY;
       this.alpha += this.fade;
 
-      if (this.alpha >= 0.8 || this.alpha <= 0.05) {
+      if (this.alpha >= 0.85 || this.alpha <= 0.05) {
         this.fade = -this.fade;
       }
 
@@ -64,19 +68,19 @@ function initSparkleCanvas() {
       ctx.beginPath();
       ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
       ctx.fillStyle = this.color + Math.max(0, this.alpha) + ')';
-      ctx.shadowBlur = 8;
-      ctx.shadowColor = '#D4A861';
+      ctx.shadowBlur = 10;
+      ctx.shadowColor = '#C6A36B';
       ctx.fill();
 
-      // Cross sparkle ray
+      // Cross starlight rays for larger particles
       if (this.size > 2) {
-        ctx.strokeStyle = this.color + (this.alpha * 0.6) + ')';
-        ctx.lineWidth = 0.5;
+        ctx.strokeStyle = this.color + (this.alpha * 0.7) + ')';
+        ctx.lineWidth = 0.6;
         ctx.beginPath();
-        ctx.moveTo(this.x - this.size * 2, this.y);
-        ctx.lineTo(this.x + this.size * 2, this.y);
-        ctx.moveTo(this.x, this.y - this.size * 2);
-        ctx.lineTo(this.x, this.y + this.size * 2);
+        ctx.moveTo(this.x - this.size * 2.5, this.y);
+        ctx.lineTo(this.x + this.size * 2.5, this.y);
+        ctx.moveTo(this.x, this.y - this.size * 2.5);
+        ctx.lineTo(this.x, this.y + this.size * 2.5);
         ctx.stroke();
       }
       ctx.restore();
@@ -99,10 +103,15 @@ function initSparkleCanvas() {
   animate();
 }
 
-// Scroll Reveal
+// Scroll Reveal Observer
 function initScrollReveal() {
-  const elements = document.querySelectorAll('.reveal-fade-up');
-  if (!elements.length) return;
+  const reveals = document.querySelectorAll('.reveal');
+  if (!reveals.length) return;
+
+  if (!('IntersectionObserver' in window) || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    reveals.forEach(el => el.classList.add('visible'));
+    return;
+  }
 
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
@@ -110,56 +119,37 @@ function initScrollReveal() {
         entry.target.classList.add('visible');
       }
     });
-  }, { threshold: 0.1 });
-
-  elements.forEach(el => observer.observe(el));
-}
-
-// WhatsApp Quick Inquiry Modal Handler
-function initWhatsAppInquiryModal() {
-  const modal = document.getElementById('waInquiryModal');
-  if (!modal) return;
-
-  const closeBtn = modal.querySelector('.modal-close');
-  const citySelect = document.getElementById('modalCitySelect');
-  const customNotes = document.getElementById('modalNotes');
-  const sendBtn = document.getElementById('modalSendWhatsAppBtn');
-  const productTitleEl = document.getElementById('modalProductTitle');
-  const productSkuEl = document.getElementById('modalProductSku');
-
-  let currentProduct = { name: '', sku: '' };
-
-  window.openWhatsAppInquiry = function(name, sku) {
-    currentProduct.name = name;
-    currentProduct.sku = sku;
-    if (productTitleEl) productTitleEl.textContent = name;
-    if (productSkuEl) productSkuEl.textContent = 'SKU: ' + sku;
-    modal.classList.add('active');
-  };
-
-  function closeModal() {
-    modal.classList.remove('active');
-  }
-
-  if (closeBtn) closeBtn.addEventListener('click', closeModal);
-  modal.addEventListener('click', (e) => {
-    if (e.target === modal) closeModal();
+  }, {
+    threshold: 0.12,
+    rootMargin: '0px 0px -40px 0px'
   });
 
-  if (sendBtn) {
-    sendBtn.addEventListener('click', () => {
-      const city = citySelect ? citySelect.value : 'Ontario';
-      const notes = customNotes ? customNotes.value.trim() : '';
-      
-      let message = `Hi Whimsy Collection! ✨\nI am inquiring about the following piece:\n\n• *Product:* ${currentProduct.name}\n• *SKU:* ${currentProduct.sku}\n• *My Delivery City:* ${city}\n`;
-      if (notes) {
-        message += `• *Notes:* ${notes}\n`;
-      }
-      message += `\nPlease let me know current availability, price details, and how soon you can deliver to ${city}. Thank you!`;
+  reveals.forEach(el => observer.observe(el));
+}
 
-      const url = `https://wa.me/17059702169?text=${encodeURIComponent(message)}`;
-      window.open(url, '_blank');
-      closeModal();
-    });
-  }
+// Interactive Mouse Move Sparkles
+function initMouseSparkles() {
+  let throttle = false;
+  window.addEventListener('mousemove', (e) => {
+    if (throttle) return;
+    throttle = true;
+    setTimeout(() => { throttle = false; }, 90);
+
+    // Occasional subtle sparkle near cursor
+    if (Math.random() > 0.65) {
+      createCursorSparkle(e.clientX, e.clientY);
+    }
+  });
+}
+
+function createCursorSparkle(x, y) {
+  const sparkle = document.createElement('div');
+  sparkle.className = 'starlight-sparkle';
+  sparkle.style.left = (x + (Math.random() * 20 - 10)) + 'px';
+  sparkle.style.top = (y + (Math.random() * 20 - 10) + window.scrollY) + 'px';
+  document.body.appendChild(sparkle);
+
+  setTimeout(() => {
+    sparkle.remove();
+  }, 1200);
 }
