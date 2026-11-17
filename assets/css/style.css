@@ -255,14 +255,25 @@ h1, h2, h3, h4, .font-serif {
 .site-header .nav-container {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
+  gap: clamp(14px, 1.6vw, 24px);
+  width: 100%;
+  max-width: 1600px;
+  flex-wrap: nowrap;
   height: 84px;
+}
+
+.site-header nav {
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .brand-link {
   display: flex;
   align-items: center;
   gap: 12px;
+  flex: 0 0 auto;
+  white-space: nowrap;
 }
 
 .brand-link img {
@@ -278,7 +289,7 @@ h1, h2, h3, h4, .font-serif {
 
 .brand-title {
   font-family: var(--font-serif);
-  font-size: 26px;
+  font-size: clamp(21px, 1.7vw, 26px);
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -293,23 +304,32 @@ h1, h2, h3, h4, .font-serif {
   color: var(--color-stone);
   font-weight: 500;
   display: block;
+  white-space: nowrap;
 }
 
 .nav-links {
   display: flex;
   align-items: center;
-  gap: 28px;
+  justify-content: center;
+  gap: clamp(12px, 1.15vw, 20px);
   list-style: none;
+  flex-wrap: nowrap;
+  white-space: nowrap;
+}
+
+.nav-links > li {
+  flex: 0 0 auto;
 }
 
 .nav-link {
-  font-size: 12px;
+  font-size: clamp(10px, 0.78vw, 12px);
   text-transform: uppercase;
   letter-spacing: 0.12em;
   font-weight: 500;
   color: var(--color-dark);
   padding: 8px 0;
   position: relative;
+  white-space: nowrap;
 }
 
 .nav-link::after {
@@ -334,7 +354,14 @@ h1, h2, h3, h4, .font-serif {
 .header-actions {
   display: flex;
   align-items: center;
-  gap: 18px;
+  gap: clamp(10px, 1vw, 16px);
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.header-actions > a {
+  flex: 0 0 auto;
+  white-space: nowrap;
 }
 
 /* Mobile Hamburger */
@@ -961,6 +988,23 @@ h1, h2, h3, h4, .font-serif {
 .footer-col a[aria-label] {
   width: 44px !important;
   min-height: 44px;
+}
+
+@media (max-width: 1240px) {
+  .site-header nav,
+  .site-header .header-actions {
+    display: none;
+  }
+
+  .site-header .mobile-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    min-width: 44px;
+    padding: 0;
+    flex: 0 0 auto;
+  }
 }
 
 /* Shared accessibility, legibility and responsive refinements */
